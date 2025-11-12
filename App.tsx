@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { GoogleGenAI } from '@google/genai';
 import { Message, ConversationState, ScriptData, DecisionPoint as DecisionPointType } from './types';
@@ -66,8 +67,15 @@ const App: React.FC = () => {
         addMessage('user', text);
         fullConversationHistory.current.push(`User: ${text}`);
 
-        if (conversationState === ConversationState.COMPLETED) {
-            setScriptData(null); // Clear old script for revision
+        const isStartingGeneration = conversationState === ConversationState.AWAITING_CONFIRMATION;
+        const isRevising = conversationState === ConversationState.COMPLETED;
+
+        if (isStartingGeneration) {
+            setConversationState(ConversationState.GENERATING_SCRIPT);
+        }
+
+        if (isRevising) {
+            setScriptData(null); // Clear old script for revision, this will trigger the spinner in ScriptDisplay
         }
 
         setIsLoading(true);
@@ -99,6 +107,10 @@ const App: React.FC = () => {
         } catch (error) {
             console.error("Error calling Gemini API:", error);
             addMessage('ai', "抱歉，我的专家团队在讨论时遇到了一点问题。请稍后再试。");
+             // If script generation failed, revert to the confirmation stage so the user can try again.
+            if (isStartingGeneration) {
+                setConversationState(ConversationState.AWAITING_CONFIRMATION);
+            }
         } finally {
             setIsLoading(false);
         }

@@ -1,3 +1,4 @@
+
 import { GoogleGenAI } from "@google/genai";
 import { RESPONSE_SCHEMA } from '../constants';
 import { ScriptData, DecisionPoint } from "../types";
@@ -16,7 +17,7 @@ export const generateScript = async (
 ): Promise<string> => {
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-pro',
+            model: 'gemini-2.5-flash',
             contents: history,
             config: {
                 systemInstruction: systemInstruction,
